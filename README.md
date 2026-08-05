@@ -117,7 +117,7 @@ template-api-tests-python/
 ## Instalação
 
 ```bash
-git clone https://github.com/Auditeste-Lab/d4sign-api-tests-playwright.git
+git clone https://github.com/joaocjr97/D4S-API-Automacao.git
 cd d4sign-api-tests-playwright
 
 python -m venv venv
