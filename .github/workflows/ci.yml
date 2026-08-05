@@ -1,0 +1,115 @@
+name: D4Sign API Tests (Behave)
+
+on:
+  push:
+    branches: [main, master]
+  pull_request:
+    branches: [main, master]
+  workflow_dispatch:
+    inputs:
+      tags:
+        description: "Tags Behave (ex.: @smoke, @critical, @upload). Vazio = todos"
+        required: false
+        default: ""
+      environment:
+        description: "Ambiente (homol, ghost, staging, hotfix, prod)"
+        required: false
+        default: "homol"
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    env:
+      CI: "true"
+      PYTHONUNBUFFERED: "1"
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.13"
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+
+      - name: Create .env from secrets
+        env:
+          ENVIRONMENT: ${{ github.event.inputs.environment || vars.ENVIRONMENT || 'homol' }}
+          D4S_USERNAME: ${{ secrets.USERNAME }}
+          D4S_PASSWORD: ${{ secrets.PASSWORD }}
+          TOKEN_API: ${{ secrets.TOKEN_API }}
+          CRYPT_KEY: ${{ secrets.CRYPT_KEY }}
+          EMAIL_TESTE: ${{ secrets.EMAIL_TESTE }}
+          WHATSAPP_TESTE: ${{ secrets.WHATSAPP_TESTE }}
+          UUID_SAFE: ${{ secrets.UUID_SAFE }}
+          LIST_ESPECIFIC_DOCUMENT: ${{ secrets.LIST_ESPECIFIC_DOCUMENT }}
+          UUID_PINS: ${{ secrets.UUID_PINS }}
+          UUID_WEBHOOK_DOCUMENT: ${{ secrets.UUID_WEBHOOK_DOCUMENT }}
+          UUID_DOC_WEBHOOK: ${{ secrets.UUID_DOC_WEBHOOK }}
+          TEMPLATE_ID_WORD: ${{ secrets.TEMPLATE_ID_WORD }}
+          TEMPLATE_ID_HTML: ${{ secrets.TEMPLATE_ID_HTML }}
+        run: python recursos/utils/create_env_ci.py
+
+      - name: List scenarios (dry-run)
+        run: |
+          echo "=== Cenários planejados ==="
+          python -u -m behave features/ --dry-run --format progress
+          echo "==========================="
+
+      - name: Run Behave tests
+        id: behave
+        continue-on-error: true
+        env:
+          BEHAVE_ENV: ${{ github.event.inputs.environment || vars.ENVIRONMENT || 'homol' }}
+        run: |
+          mkdir -p reports/allure-results
+          TAGS="${{ github.event.inputs.tags }}"
+          # -D env sobrescreve behave.ini (env=hml) e alinha com o ENVIRONMENT do .env
+          CMD=(
+            python -u -m behave features/
+            -D "env=${BEHAVE_ENV}"
+            --no-capture
+            --show-timings
+            --logging-level INFO
+            --format progress --outfile -
+            --format html --outfile reports/behave_report.html
+            --format json.pretty --outfile reports/behave.json
+            -f allure_behave.formatter:AllureFormatter -o reports/allure-results
+          )
+          if [ -n "$TAGS" ]; then
+            CMD+=(--tags="$TAGS")
+          fi
+          echo "=== Início $(date -u +%H:%M:%S) UTC | env=${BEHAVE_ENV} ==="
+          echo "Comando: ${CMD[*]}"
+          set -o pipefail
+          stdbuf -oL -eL "${CMD[@]}" 2>&1 | tee reports/behave_console.log
+          EXIT_CODE=${PIPESTATUS[0]}
+          echo "=== Fim $(date -u +%H:%M:%S) UTC | exit=${EXIT_CODE} ==="
+          ls -la reports/ || true
+          echo "exit_code=${EXIT_CODE}" >> "$GITHUB_OUTPUT"
+          exit "${EXIT_CODE}"
+
+      - name: Generate Job Summary
+        if: always()
+        run: python recursos/utils/generate_job_summary.py
+
+      - name: Upload reports
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: behave-api-reports
+          path: |
+            reports/
+            reports/allure-results/
+
+      - name: Fail if tests failed
+        if: always()
+        run: |
+          if [ "${{ steps.behave.outcome }}" != "success" ]; then
+            echo "Testes Behave falharam."
+            exit 1
+          fi

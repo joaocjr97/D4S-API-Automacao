@@ -1,0 +1,30 @@
+# Secrets / local env
+.env
+
+# Virtualenvs
+venv/
+.venv/
+
+# Python
+__pycache__/
+**/__pycache__/
+*.py[cod]
+*.egg-info/
+dist/
+build/
+.pytest_cache/
+.ruff_cache/
+.mypy_cache/
+
+# IDE / OS
+.idea/
+.vscode/
+.DS_Store
+Thumbs.db
+*.log
+
+# Relatórios gerados (mantém a pasta via .gitkeep)
+reports/**
+!reports/.gitkeep
+allure-results/
+allure-report/

@@ -1,0 +1,37 @@
+[project]
+name = "d4sign-api-tests"
+version = "0.1.0"
+description = "Automação de testes de API D4Sign com Behave, HTTPX e Clean Architecture"
+readme = "README.md"
+requires-python = ">=3.13"
+dependencies = [
+    "behave>=1.2.6",
+    "httpx>=0.28.0",
+    "python-dotenv>=1.0.0",
+    "faker>=33.0.0",
+    "jsonschema>=4.23.0",
+    "allure-behave>=2.13.0",
+    "tenacity>=9.0.0",
+    "behave-html-formatter>=0.9.10",
+]
+
+[project.optional-dependencies]
+dev = [
+    "pytest>=8.3.0",
+    "ruff>=0.8.0",
+    "black>=24.10.0",
+]
+
+[tool.uv]
+package = false
+
+[tool.ruff]
+line-length = 100
+target-version = "py313"
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "N", "W", "UP", "B", "SIM"]
+
+[tool.black]
+line-length = 100
+target-version = ["py313"]

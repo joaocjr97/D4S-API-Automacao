@@ -1,0 +1,11 @@
+behave==1.2.6
+httpx>=0.28.0
+python-dotenv==1.1.0
+Faker>=33.0.0
+jsonschema>=4.23.0
+allure-behave>=2.13.0
+tenacity>=9.0.0
+behave-html-formatter==0.9.10
+pytest>=8.3.0
+ruff>=0.8.0
+black>=24.10.0
