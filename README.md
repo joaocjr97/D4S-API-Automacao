@@ -8,8 +8,8 @@
 
 Suíte de automação de **API** da plataforma **D4Sign** com **Behave (BDD/Gherkin em português)**, **Service Layer** e **HTTPX**.
 
-Repositório: [`Auditeste-Lab/d4sign-api-tests-playwright`](https://github.com/Auditeste-Lab/d4sign-api-tests-playwright)  
-Projeto irmão (web): [`d4sign-web-tests-playwright`](https://github.com/Auditeste-Lab/d4sign-web-tests-playwright)
+Repositório: https://github.com/joaocjr97/D4S-API-Automacao.git 
+
 
 ## Sumário
 
